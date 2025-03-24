@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-website
+  labels:
+    app: demo-website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-website
+  template:
+    metadata:
+      labels:
+        app: demo-website
+    spec:
+      containers:
+        - name: demo-website
+          image: ECR_REPO_URI:latest
+          ports:
+            - containerPort: 80
