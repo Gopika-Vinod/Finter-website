@@ -18,29 +18,27 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ap-south-1
 
       - name: Log in to Amazon ECR
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-          docker login --username AWS --password-stdin ${{ secrets.ECR_REPO_URI }}
+          aws ecr get-login-password --region ap-south-1 | \
+          docker login --username AWS --password-stdin 905418383753.dkr.ecr.ap-south-1.amazonaws.com
 
       - name: Build and Push Docker Image to ECR
-        env:
-          ECR_REPO_URI: ${{ secrets.ECR_REPO_URI }}
         run: |
           IMAGE_TAG=$(date +%s)
+          ECR_REPO_URI=905418383753.dkr.ecr.ap-south-1.amazonaws.com/demo-website
           docker build -t $ECR_REPO_URI:$IMAGE_TAG ./my-website
           docker push $ECR_REPO_URI:$IMAGE_TAG
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "ECR_REPO_URI=$ECR_REPO_URI" >> $GITHUB_ENV
 
       - name: Update kubeconfig for EKS
         run: |
-          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
+          aws eks update-kubeconfig --region ap-south-1 --name my-eks-cluster
 
       - name: Update deployment image and apply
-        env:
-          ECR_REPO_URI: ${{ secrets.ECR_REPO_URI }}
         run: |
           sed -i "s|image:.*|image: $ECR_REPO_URI:$IMAGE_TAG|" deployment.yaml
           kubectl apply -f deployment.yaml
