@@ -1,13 +1,12 @@
-name: Deploy Website to AWS EKS
+name: Deploy Website to EKS
 
 on:
   push:
     branches:
-      - feature/demo-deployment  # or use your target branch like 'feature/deploy'
+      - feature/demo-deployment
 
 jobs:
   deploy:
-    name: Build and Deploy to EKS
     runs-on: ubuntu-latest
 
     steps:
@@ -27,10 +26,12 @@ jobs:
           docker login --username AWS --password-stdin ${{ secrets.ECR_REPO_URI }}
 
       - name: Build and Push Docker Image to ECR
+        env:
+          ECR_REPO_URI: ${{ secrets.ECR_REPO_URI }}
         run: |
           IMAGE_TAG=$(date +%s)
-          docker build -t ${{ secrets.ECR_REPO_URI }}:$IMAGE_TAG ./my-website
-          docker push ${{ secrets.ECR_REPO_URI }}:$IMAGE_TAG
+          docker build -t $ECR_REPO_URI:$IMAGE_TAG ./my-website
+          docker push $ECR_REPO_URI:$IMAGE_TAG
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Update kubeconfig for EKS
@@ -38,7 +39,9 @@ jobs:
           aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
 
       - name: Update deployment image and apply
+        env:
+          ECR_REPO_URI: ${{ secrets.ECR_REPO_URI }}
         run: |
-          sed -i "s|image:.*|image: ${{ secrets.ECR_REPO_URI }}:$IMAGE_TAG|" deployment.yaml
+          sed -i "s|image:.*|image: $ECR_REPO_URI:$IMAGE_TAG|" deployment.yaml
           kubectl apply -f deployment.yaml
           kubectl apply -f service.yaml
