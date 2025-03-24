@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: demo-website
-          image: ECR_REPO_URI:latest
+          image: 905418383753.dkr.ecr.ap-south-1.amazonaws.com/demo-website:latest
           ports:
             - containerPort: 80
