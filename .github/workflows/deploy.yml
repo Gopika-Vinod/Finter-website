@@ -43,3 +43,6 @@ jobs:
           sed -i "s|image:.*|image: $ECR_REPO_URI:$IMAGE_TAG|" deployment.yaml
           kubectl apply -f deployment.yaml
           kubectl apply -f service.yaml
+          kubectl get pods
+          kubectl get svc
+
